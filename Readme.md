@@ -1,7 +1,7 @@
 
-# blotIt - a framework for alignment of biological replicate data
+# BlotIt - Optimal alignment of western blot and qPCR experiments
 
-The present package bases on [blotIt2](https://github.com/dkaschek/blotIt2) by Daniel Kaschek. The aim of this toolbox is to scale biological replicate data to a common scale, making the quantitative data of different experiments comparable.
+The present package bases on [blotIt2](https://github.com/dkaschek/blotIt2) by Daniel Kaschek. The aim of this toolbox is to align biological replicate data to a common scale, making the quantitative data of different experiments comparable.
 
 ## System preperation
 
