@@ -156,24 +156,25 @@ readWide <- function(file, description = NULL, time = 1, header = TRUE, ...) {
 #' @export
 #' @author Severin Bang and Svenja Kemmer
 
-plotIt <- function(inputList,
-                          ...,
-                          plotPoints = "aligned",
-                          plotLine = "aligned",
-                          spline = FALSE,
-                          scales = "free",
-                          alignZeros = TRUE,
-                          plotCaption = TRUE,
-                          ncol = NULL,
-                          useColors = NULL,
-                          duplicateZeroPoints = FALSE,
-                          useOrder = NULL,
-                          plotScaleY = NULL,
-                          plotScaleX = NULL,
-                          doseResponse = FALSE,
-                          labelX = NULL,
-                          labelY = NULL
-                          ) {
+plotIt <- function(
+  inputList,
+  ...,
+  plotPoints = "aligned",
+  plotLine = "aligned",
+  spline = FALSE,
+  scales = "free",
+  alignZeros = TRUE,
+  plotCaption = TRUE,
+  ncol = NULL,
+  useColors = NULL,
+  duplicateZeroPoints = FALSE,
+  useOrder = NULL,
+  plotScaleY = NULL,
+  plotScaleX = NULL,
+  doseResponse = FALSE,
+  labelX = NULL,
+  labelY = NULL
+) {
     if (!plotPoints %in% c("original", "scaled", "prediction", "aligned") |
         !plotLine %in% c("original", "scaled", "prediction", "aligned")) {
         stop(
