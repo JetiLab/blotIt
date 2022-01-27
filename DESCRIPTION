@@ -1,0 +1,32 @@
+Package: blotIt
+Type: Package
+Title: Software set for alignment of biological replicate data
+Version: 0.1.0
+Authors@R: 
+    c(
+    person("Severin", "Bang", role = c("aut", "cre"), 
+    email = "severin.bang@physik.uni-freiburg.de", comment = c(ORCID = "0000-0002-3016-7026"))
+    )
+Description: A framework for scaling biological replicate data e.g. from 
+    quantitative immunublotting. Scaling factors taking e.g. gel-to-gel
+    differences into account are determined by optimization of a respective
+    objective function. Also provided are functions for hypothesis testing.
+License: GPL-3
+Depends:
+    utils,
+    MASS,
+    data.table,
+    ggplot2,
+    rootSolve,
+    trust
+Suggests: 
+    testthat (>= 3.0.0),
+    BiocStyle,
+    knitr,
+    rmarkdown
+Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: False
+biocViews: Alignment, SystemsBiology, DataImport, TimeCourse
+RoxygenNote: 7.1.2
+VignetteBuilder: knitr
