@@ -24,7 +24,7 @@ library(blotIt)
 It is assumed that typically measurements are present in human-readable wide formatted .csv files. An example data set can be found at
 ```r
 exampleDataPath <- system.file(
-                "extdata", "sim_data_wide.csv",
+                "extdata", "simDataWide.csv",
                 package = "blotIt"
             )
 ```
