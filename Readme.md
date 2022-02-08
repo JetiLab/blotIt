@@ -10,7 +10,7 @@ blotIt requires the `R` packages `utils, MASS, data.table, ggplot2, rootSolve, d
 ```r
 install.packages(c("utils", "MASS", "data.table", "ggplot2", "rootSolve", "trust", "devtools", "data.table"))
 ```
-blotIt then is installed via `devtools`:
+blotIt is then installed via `devtools`:
 ```r
 devtools::install_github("JetiLab/blotIt")
 ```
@@ -21,7 +21,7 @@ First, the package is imported
 ```r
 library(blotIt)
 ```
-It is assumed that typically measurements are present in human-readable wide formatted .csv files. An example data set can be found at
+It is assumed that measurements are present in human-readable wide formatted .csv files. An example data set can be found at
 ```r
 exampleDataPath <- system.file(
                 "extdata", "simDataWide.csv",
@@ -39,9 +39,9 @@ The file has the structure
 5	|0Uml Epo	|2	|	|	|398.958892340432|	...
 |...|...|...|...|...|...|...
 
-The first three columns contain description data: time points, measurement conditions and IDs (e.g. the IDs of the different experiments). All following columns contain the measurements of different targets, with the first row containing the names and the following the measurement values corresponding to the time, condition and ID stated in the first columns.
+The first three columns contain description data: time points, measurement conditions and IDs (e.g. the IDs of the different experiments). All following columns contain the measurements of different targets, with the first row containing the names and the following rows comprising the measurement values corresponding to the time, condition and ID stated in the first columns.
 
-The information which columns contain descriptions has to be passed to `readWide()`:
+The information, which columns contain descriptions, has to be passed to `readWide()`:
 ```r
 importedData <- readWide(
     file = exampleDataPath, # path to the example file
@@ -63,12 +63,12 @@ pAKT6|      60|  0Uml Epo|  1|  pAKT| 111.91323
 pAKT7|     240|  0Uml Epo|  1|  pAKT| 132.56618
 |...|...| ...| ...|...|...|
 
-The wide table is melted into the `long` format, the columns `name` contain the column names of the columns not defined as `description` in `readWide` (i.e. the different targets) and `value` the respective values.
+The wide data table is melted into a `long` format, where the column `name` contains the different targets (i.e. the names of the columns not defined as `description` in `readWide`) and the column `value` comprises the respective values.
 
-Data in this long format can then be passed to `alignReplicates()` for scaling
+Data in this long format can then be passed to `alignReplicates()` for scaling.
 
 ### Scale data
-Scaling biological replicates to one common scale has the advantage that the values although on arbitrary scale are comparable. There approach here is based on optimization:
+Scaling biological replicates to one common scale has the advantage that the values, although on arbitrary scale, are comparable. The scaling approach implemented in blotIt is based on optimization:
 
 ```r
 out <- alignReplicates(
@@ -99,4 +99,4 @@ P <- plotIt(
   plotCaption = TRUE
 )
 ```
-With `plotPoints` and `plotLine`, the respective dataset can be choosen for plotting. Many more options are available, see `?plotIt` for more details.
+In `plotPoints` and `plotLine` the respective dataset chosen for plotting is defined. Many more options are available, see `?plotIt` for more details.
