@@ -15,7 +15,6 @@ plotIt(
   plotCaption = TRUE,
   ncol = NULL,
   useColors = NULL,
-  duplicateZeroPoints = FALSE,
   useOrder = NULL,
   plotScaleY = NULL,
   plotScaleX = NULL,
@@ -66,12 +65,8 @@ data is added to the plot.}
 \item{ncol}{Numerical passed as \code{ncol} argument to
 \link{facet_wrap}.}
 
-\item{useColors}{list of custom color values as taken by the \code{values}
+\item{useColors}{vector of custom color values as taken by the \code{values}
 argument in the \link{scale_color_manual} method for \code{ggplot} objects.}
-
-\item{duplicateZeroPoints}{Logical, if set to \code{TRUE} all zero time
-points are assumed to belong to the first condition. E.g. when the different
-conditions consist of treatments added at time zero. Default is \code{FALSE}.}
 
 \item{useOrder}{Optional list of target names in the custom order that will
 be used for faceting.}

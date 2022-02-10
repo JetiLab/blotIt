@@ -76,7 +76,7 @@ out <- alignReplicates(
   model = "yi / sj",
   errorModel = "value * sigmaR",
   biological = yi ~ name + time + condition,
-  scaling = sj ~ name + ID,
+  scaling = sj ~ name + experiment,
   error = sigmaR ~ name + 1,
   normalize = TRUE,
   averageTechRep = FALSE,
@@ -96,7 +96,7 @@ P <- plotIt(
   plotLine = "aligned",
   scales = "free",
   alignZeros = TRUE,
-  plotCaption = TRUE
+  plotCaption = FALSE
 )
 ```
 In `plotPoints` and `plotLine` the respective dataset chosen for plotting is defined. Many more options are available, see `?plotIt` for more details.

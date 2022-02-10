@@ -109,12 +109,12 @@ readWide <- function(file, description = NULL, time = 1, header = TRUE, ...) {
 #' @param ncol Numerical passed as \code{ncol} argument to
 #' \link{facet_wrap}.
 #'
-#' @param useColors list of custom color values as taken by the \code{values}
+#' @param useColors vector of custom color values as taken by the \code{values}
 #' argument in the \link{scale_color_manual} method for \code{ggplot} objects.
 #'
-#' @param duplicateZeroPoints Logical, if set to \code{TRUE} all zero time
-#' points are assumed to belong to the first condition. E.g. when the different
-#' conditions consist of treatments added at time zero. Default is \code{FALSE}.
+# @param duplicateZeroPoints Logical, if set to \code{TRUE} all zero time
+# points are assumed to belong to the first condition. E.g. when the different
+# conditions consist of treatments added at time zero. Default is \code{FALSE}.
 #'
 #' @param useOrder Optional list of target names in the custom order that will
 #' be used for faceting.
@@ -167,7 +167,7 @@ plotIt <- function(
   plotCaption = TRUE,
   ncol = NULL,
   useColors = NULL,
-  duplicateZeroPoints = FALSE,
+  #duplicateZeroPoints = FALSE,
   useOrder = NULL,
   plotScaleY = NULL,
   plotScaleX = NULL,
@@ -212,22 +212,22 @@ plotIt <- function(
 
     plotList <- inputList
 
-    ## duplicate 0 values for all doses
-    if (duplicateZeroPoints) {
-        for (ndat in 1) {
-            dat <- plotList[[ndat]]
-            subsetZeros <- copy(subset(dat, time == 0))
-            myDoses <- setdiff(unique(dat$dose), 0)
-            myZerosAdd <- NULL
-            for (d in seq(1, length(myDoses))) {
-                subsetZerosD <- copy(subsetZeros)
-                subsetZerosD$dose <- myDoses[d]
-                myZerosAdd <- rbind(myZerosAdd, subsetZerosD)
-            }
-            dat <- rbind(dat, myZerosAdd)
-            plotList[[ndat]] <- dat
-        }
-    }
+    ## duplicate 0 values for all doses # not working at the moment!
+    # if (duplicateZeroPoints) {
+    #     for (ndat in 1) {
+    #         dat <- plotList[[ndat]]
+    #         subsetZeros <- copy(subset(dat, time == 0))
+    #         myDoses <- setdiff(unique(dat$dose), 0)
+    #         myZerosAdd <- NULL
+    #         for (d in seq(1, length(myDoses))) {
+    #             subsetZerosD <- copy(subsetZeros)
+    #             subsetZerosD$dose <- myDoses[d]
+    #             myZerosAdd <- rbind(myZerosAdd, subsetZerosD)
+    #         }
+    #         dat <- rbind(dat, myZerosAdd)
+    #         plotList[[ndat]] <- dat
+    #     }
+    # }
 
     ## add columns containing the respective scaling and biological effects
 
@@ -451,8 +451,8 @@ plotIt <- function(
                 g <- g + geom_ribbon(
                     data = plotListLine,
                     aes(
-                        minY = lower, # value - sigma,
-                        maxY = upper, # value + sigma#,
+                        ymin = lower, # value - sigma,
+                        ymax = upper, # value + sigma#,
                         # fill = "grey",
                         # color = "grey"
                     ),
@@ -469,8 +469,8 @@ plotIt <- function(
             g <- g + geom_errorbar(
                 data = plotListPoints,
                 aes(
-                    minY = lower, # value - sigma,
-                    maxY = upper # value + sigma
+                    ymin = lower, # value - sigma,
+                    ymax = upper # value + sigma
                 ),
                 size = 0.5,
                 width = errWidth,
@@ -488,8 +488,8 @@ plotIt <- function(
             g <- g + geom_ribbon(
                 data = plotListLine,
                 aes(
-                    minY = lower, # value - sigma,
-                    maxY = upper, # value + sigma#,
+                    ymin = lower, # value - sigma,
+                    ymax = upper, # value + sigma#,
                     # fill = "grey",
                     # color = "grey"
                 ),
@@ -505,8 +505,8 @@ plotIt <- function(
             g <- g + geom_errorbar(
                 data = plotListPoints,
                 aes(
-                    minY = lower, # value - sigma,
-                    maxY = upper # value + sigma
+                    ymin = lower, # value - sigma,
+                    ymax = upper # value + sigma
                 ),
                 size = 0.5,
                 width = errWidth,
@@ -524,8 +524,8 @@ plotIt <- function(
             g <- g + geom_ribbon(
                 data = plotListLine,
                 aes(
-                    minY = lower, # value - sigma,
-                    maxY = upper, # value + sigma#,
+                    ymin = lower, # value - sigma,
+                    ymax = upper, # value + sigma#,
                     # fill = "grey",
                     # color = "grey"
                 ),
@@ -540,8 +540,8 @@ plotIt <- function(
             g <- g + geom_errorbar(
                 data = plotListPoints,
                 aes(
-                    minY = lower, # value - sigma,
-                    maxY = upper # value + sigma
+                    ymin = lower, # value - sigma,
+                    ymax = upper # value + sigma
                 ),
                 size = 0.5,
                 width = errWidth,
@@ -559,8 +559,8 @@ plotIt <- function(
                 g <- g + geom_ribbon(
                     data = plotListLine,
                     aes(
-                        minY = lower, # value - sigma,
-                        maxY = upper, # value + sigma#,
+                        ymin = lower, # value - sigma,
+                        ymax = upper, # value + sigma#,
                         # fill = "grey",
                         # color = "grey"
                     ),
@@ -594,23 +594,23 @@ plotIt <- function(
     if (alignZeros) {
         if (plotPoints != "original") {
             ## scale y-axes (let them start at same minimum determined by
-            ## smallest value-sigma and end at individual maxY)
+            ## smallest value-sigma and end at individual ymax)
             plotListPoints <- as.data.table(plotListPoints)
             blankData <- plotListPoints[
                 ,
-                list(maxY = max(upper), minY = min(lower)),
+                list(ymax = max(upper), ymin = min(lower)),
                 by = c("name", "biological", "scaling")
             ]
-            blankData[, ":="(minY = min(minY))] # same minimum for all proteins
+            blankData[, ":="(ymin = min(ymin))] # same minimum for all proteins
             blankData[
                 ,
-                ":="(maxY = getMaxY(maxY)),
+                ":="(ymax = getMaxY(ymax)),
                 by = c("name", "biological", "scaling")
             ] # protein specific maximum
             blankData <- melt(
                 blankData,
                 id.vars = c("name", "biological", "scaling"),
-                measure.vars = c("maxY", "minY"),
+                measure.vars = c("ymax", "ymin"),
                 value.name = "value"
             )
             blankData[, ":="(xVariable = 0, variable = NULL)]
