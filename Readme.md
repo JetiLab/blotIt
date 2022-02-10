@@ -40,7 +40,7 @@ The file has the structure
 |...|...|...|...|...|...
 
 
-The first three columns contain description data: time points, measurement conditions and IDs (e.g. the IDs of the different experiments). All following columns contain the measurements of different targets, with the first row containing the names and the following rows comprising the measurement values corresponding to the time, condition and ID stated in the first columns.
+The first three columns contain description data: time points, measurement conditions and experiments. All following columns contain the measurements of different targets, with the first row containing the names and the following rows comprising the measurement values corresponding to the time, condition and experiment stated in the first columns.
 
 The information, which columns contain descriptions, has to be passed to `readWide()`:
 ```r
