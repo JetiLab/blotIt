@@ -639,6 +639,8 @@ plotIt <- function(
         if (inputList$outputScale != "linear") {
             g <- g + coord_trans(x = inputList$outputScale)
         }
+    } else if (plotScaleX == "pseudoLog10") {
+      g <- g + scale_x_continuous(trans=scales::pseudo_log_trans(base = 10))
     } else if (plotScaleX %in% c("log", "log2", "log10")) {
         g <- g + scale_x_continuous(trans = plotScaleX)
     }
