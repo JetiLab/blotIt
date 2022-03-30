@@ -214,11 +214,11 @@ alignReplicates <- function(data,
     covariates <- union(
         getSymbols(
             model,
-            exclude = c(effectsPars[1], effectsPars[2], effectsPars[3])
+            exclude = c(effectsPars[[1]], effectsPars[[2]], effectsPars[[3]])
         ),
         getSymbols(
             errorModel,
-            exclude = c(effectsPars[1], effectsPars[2], effectsPars[3])
+            exclude = c(effectsPars[[1]], effectsPars[[2]], effectsPars[[3]])
         )
     )
     cat("Covariates:", paste(covariates, sep = ", "), "\n")
@@ -227,11 +227,11 @@ alignReplicates <- function(data,
     if (
         length(
             setdiff(
-                unlist(c(
-                    effectsPars[1],
-                    effectsPars[2],
-                    effectsPars[3]
-                )),
+                c(
+                    effectsPars[[1]],
+                    effectsPars[[2]],
+                    effectsPars[[3]]
+                ),
                 parameters
             )
         ) > 0
@@ -241,9 +241,9 @@ alignReplicates <- function(data,
     }
 
     ## Name the respective parameters fixed, latent and error
-    names(parameters)[parameters %in% effectsPars[1]] <- "biological"
-    names(parameters)[parameters %in% effectsPars[2]] <- "scaling"
-    names(parameters)[parameters %in% effectsPars[3]] <- "error"
+    names(parameters)[parameters %in% effectsPars[[1]]] <- "biological"
+    names(parameters)[parameters %in% effectsPars[[2]]] <- "scaling"
+    names(parameters)[parameters %in% effectsPars[[3]]] <- "error"
 
     ## parse error model by replacing the "value" by the model
     errorModel <- replaceSymbols(
