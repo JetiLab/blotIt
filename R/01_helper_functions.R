@@ -1123,15 +1123,15 @@ resolveFunction <- function(currentPars,
         function(n) {
             parClass <- gsub('[_0-9]+', '', names(parsAll))
             subpar <- parsAll[parClass == n]
-            if (n %in% effectsPars[1]) {
+            if (n %in% effectsPars[[1]]) {
                 ## Rename entries of the first list (fixed)
                 names(subpar) <- levelsList[[1]]
             }
-            if (n %in% effectsPars[2]) {
+            if (n %in% effectsPars[[2]]) {
                 ## Rename entries of the second list (latent)
                 names(subpar) <- levelsList[[2]]
             }
-            if (n %in% effectsPars[3]) {
+            if (n %in% effectsPars[[3]]) {
                 ## Rename entries of the third list (error)
                 names(subpar) <- levelsList[[3]]
             }
@@ -1217,6 +1217,19 @@ rssModel <- function(parList,
         ## paste list with entries: name, time, value, sigma, the effects and
         ## their paramters
         c(as.list(dataFit), parList), {
+          if(F) {
+            name <- c(as.list(dataFit), parList)$name
+            time <- c(as.list(dataFit), parList)$time
+            value <- c(as.list(dataFit), parList)$value
+            sigma <- c(as.list(dataFit), parList)$sigma
+            biological <- c(as.list(dataFit), parList)$biological
+            scaling <- c(as.list(dataFit), parList)$scaling
+            error <- c(as.list(dataFit), parList)$error
+            yi <- c(as.list(dataFit), parList)$yi
+            sj <- c(as.list(dataFit), parList)$sj
+            sigmaR <- c(as.list(dataFit), parList)$sigmaR
+            sigmaA <- c(as.list(dataFit), parList)$sigmaA
+          }
             ## Generate lists var and prediction with <NoOfMeasurements> entries
             ## and initialize the it with 1
             prediction <- var <- rep(1, length(value))

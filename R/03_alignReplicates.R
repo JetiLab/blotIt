@@ -227,11 +227,11 @@ alignReplicates <- function(data,
     if (
         length(
             setdiff(
-                c(
+                unlist(c(
                     effectsPars[1],
                     effectsPars[2],
                     effectsPars[3]
-                ),
+                )),
                 parameters
             )
         ) > 0
