@@ -1373,11 +1373,7 @@ objFunction <- function(currentPars,
     bessel <- 1
 
     ## Calculate the current value
-<<<<<<< HEAD
-    value <- sum(residuals^2) + bessel * sum(log(2*pi*variances)) + constraint^2
-=======
-    value <- sum(residuals^2) + bessel * sum(log(variances)) * pi + constraint^2
->>>>>>> refs/remotes/origin/main
+    value <- sum(residuals^2) + bessel * sum(log(2*pi * variances)) + constraint^2
     gradient <- NULL
     hessian <- NULL
 
