@@ -125,6 +125,9 @@ readWide <- function(file, description = NULL, time = 1, header = TRUE, ...) {
 #'
 #' @param doseResponse Logical, indicates if the plot should be dose response
 #'
+#' @param doseValueName name of the column that should be used for the x axis in
+#' case of a dose response plot. The default is 'dose'
+#'
 #' @param labelX Optional, value passed to \code{xlab} parameter of \link{ggplot}
 #' for the x-axis. Default is \code{NULL} leading to 'Time' or 'Dose',
 #' respectively.
@@ -172,6 +175,7 @@ plotIt <- function(
   plotScaleY = NULL,
   plotScaleX = NULL,
   doseResponse = FALSE,
+  doseValueName = "dose",
   labelX = NULL,
   labelY = NULL
 ) {
@@ -233,7 +237,7 @@ plotIt <- function(
 
     # aligned
     if (doseResponse == TRUE) {
-        xValue <- "dose"
+        xValue <- doseValueName
     } else {
         xValue <- "time"
     }

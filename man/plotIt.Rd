@@ -19,6 +19,7 @@ plotIt(
   plotScaleY = NULL,
   plotScaleX = NULL,
   doseResponse = FALSE,
+  doseValueName = "dose",
   labelX = NULL,
   labelY = NULL
 )
@@ -76,6 +77,9 @@ be used for faceting.}
 \item{plotScaleX}{character, defining the scale of the x axis}
 
 \item{doseResponse}{Logical, indicates if the plot should be dose response}
+
+\item{doseValueName}{name of the column that should be used for the x axis in
+case of a dose response plot. The default is 'dose'}
 
 \item{labelX}{Optional, value passed to \code{xlab} parameter of \link{ggplot}
 for the x-axis. Default is \code{NULL} leading to 'Time' or 'Dose',
