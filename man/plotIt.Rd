@@ -21,7 +21,8 @@ plotIt(
   doseResponse = FALSE,
   doseValueName = "dose",
   labelX = NULL,
-  labelY = NULL
+  labelY = NULL,
+  FacetLabels = c("simple", "full")[1]
 )
 }
 \arguments{
@@ -29,21 +30,7 @@ plotIt(
 of data.frames.}
 
 \item{...}{Logical expression used for subsetting the data frames, e.g.
-\code{name == "pERK1" & time < 60}.
-
-\describe{
-To reproduce the known function \code{plot1}, \code{plot2} and \code{plot3},
-use:
-\item{plot1}{
-\code{plotPoints} = 'original', \code{plotLine} = 'prediction'
-}
-\item{plot2}{
-\code{plotPoints} = 'scaled', \code{plotLine} = 'aligned'
-}
-\item{plot3}{
-\code{plotPoints} = 'aligned', \code{plotLine} = 'aligned'
-}
-}}
+\code{name == "pERK1" & time < 60}.}
 
 \item{plotPoints}{String to specify which data set should be plotted in form
 of points with corresponding error bars. It must be one of

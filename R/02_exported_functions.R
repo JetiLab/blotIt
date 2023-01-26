@@ -29,57 +29,57 @@
 
 
 readWide <- function(file, description = NULL, time = 1, header = TRUE, ...) {
-    useData <- read.csv(file, header = header, ...)
-    allNames <- colnames(useData)
+  useData <- read.csv(file, header = header, ...)
+  allNames <- colnames(useData)
 
-    if (is.null(description)) {
-        stop("Specify columns containing descriptions.")
-    }
-    if (is.character(description)) {
-        noDescription <- which(colnames(useData) %in% description)
-    } else {
-        noDescription <- description
-    }
-    ## Check the index of the "time" column
-    if (is.character(time)) {
-        noTime <- which(colnames(useData) == time)
-    } else {
-        noTime <- time
-    }
+  if (is.null(description)) {
+    stop("Specify columns containing descriptions.")
+  }
+  if (is.character(description)) {
+    noDescription <- which(colnames(useData) %in% description)
+  } else {
+    noDescription <- description
+  }
+  ## Check the index of the "time" column
+  if (is.character(time)) {
+    noTime <- which(colnames(useData) == time)
+  } else {
+    noTime <- time
+  }
 
-    ## Check availability of description and time
-    if (length(noDescription) < length(description)) {
-        warning(
-            "Not all columns proposed by argument 'description' are available",
-            " in file.\nTaking the available ones."
-        )
-    }
-
-    if (length(noTime) == 0) {
-        stop(
-            "File did not contain a time column as proposed by 'time' argument."
-        )
-    }
-
-    ## biological description data from measurement data
-    descrEntries <- useData[, noDescription]
-    restLong <- unlist(useData[, -noDescription])
-
-    ## Create output data frame
-    newData <- data.frame(
-        descrEntries,
-        name = rep(allNames[-noDescription], each = dim(useData)[1]),
-        value = restLong
+  ## Check availability of description and time
+  if (length(noDescription) < length(description)) {
+    warning(
+      "Not all columns proposed by argument 'description' are available",
+      " in file.\nTaking the available ones."
     )
+  }
 
-    ## Remove missing items
-    newData <- newData[!is.nan(newData$value), ]
-    newData <- newData[!is.na(newData$value), ]
+  if (length(noTime) == 0) {
+    stop(
+      "File did not contain a time column as proposed by 'time' argument."
+    )
+  }
+
+  ## biological description data from measurement data
+  descrEntries <- useData[, noDescription]
+  restLong <- unlist(useData[, -noDescription])
+
+  ## Create output data frame
+  newData <- data.frame(
+    descrEntries,
+    name = rep(allNames[-noDescription], each = dim(useData)[1]),
+    value = restLong
+  )
+
+  ## Remove missing items
+  newData <- newData[!is.nan(newData$value), ]
+  newData <- newData[!is.na(newData$value), ]
 
 
-    colnames(newData)[noTime] <- "time"
+  colnames(newData)[noTime] <- "time"
 
-    return(newData)
+  return(newData)
 }
 
 
@@ -138,6 +138,10 @@ readWide <- function(file, description = NULL, time = 1, header = TRUE, ...) {
 #' @param ... Logical expression used for subsetting the data frames, e.g.
 #' \code{name == "pERK1" & time < 60}.
 #'
+#' @FacetLabels String, either 'simple' or 'full'. Results in the value of
+#' the facets being printed either separated by underscores ('simple') or
+#' with the respective facet names ('full')
+#'
 #' \describe{
 #' To reproduce the known function \code{plot1}, \code{plot2} and \code{plot3},
 #' use:
@@ -160,497 +164,644 @@ readWide <- function(file, description = NULL, time = 1, header = TRUE, ...) {
 #' @author Severin Bang and Svenja Kemmer
 
 plotIt <- function(
-  inputList,
-  ...,
-  plotPoints = "aligned",
-  plotLine = "aligned",
-  spline = FALSE,
-  scales = "free",
-  alignZeros = TRUE,
-  plotCaption = TRUE,
-  ncol = NULL,
-  useColors = NULL,
-  #duplicateZeroPoints = FALSE,
-  useOrder = NULL,
-  plotScaleY = NULL,
-  plotScaleX = NULL,
-  doseResponse = FALSE,
-  doseValueName = "dose",
-  labelX = NULL,
-  labelY = NULL
+    inputList,
+    ...,
+    plotPoints = "aligned",
+    plotLine = "aligned",
+    spline = FALSE,
+    scales = "free",
+    alignZeros = TRUE,
+    plotCaption = TRUE,
+    ncol = NULL,
+    useColors = NULL,
+    #duplicateZeroPoints = FALSE,
+    useOrder = NULL,
+    plotScaleY = NULL,
+    plotScaleX = NULL,
+    doseResponse = FALSE,
+    doseValueName = "dose",
+    labelX = NULL,
+    labelY = NULL,
+    FacetLabels = c("simple", "full")[1]
 ) {
-    if (!plotPoints %in% c("original", "scaled", "prediction", "aligned") |
-        !plotLine %in% c("original", "scaled", "prediction", "aligned")) {
-        stop(
-            "\n\t'plotPoints' and 'plotLine' must each be one of
+  if (!plotPoints %in% c("original", "scaled", "prediction", "aligned") |
+      !plotLine %in% c("original", "scaled", "prediction", "aligned")) {
+    stop(
+      "\n\t'plotPoints' and 'plotLine' must each be one of
             c('original', 'scaled', 'prediction', 'aligned')\n"
-        )
-    }
+    )
+  }
 
-    ## change plotting order from default
-    if (!is.null(useOrder)) {
-        if (length(setdiff(levels(inputList[[1]]$name), useOrder)) != 0) {
-            stop("useOrder doesn't contain all protein names.")
-        } else {
-            inputList$aligned$name <- factor(
-                inputList$aligned$name,
-                levels = useOrder
-            )
-            inputList$scaled$name <- factor(
-                inputList$scaled$name,
-                levels = useOrder
-            )
-            inputList$prediction$name <- factor(
-                inputList$prediction$name,
-                levels = useOrder
-            )
-            inputList$original$name <- factor(
-                inputList$original$name,
-                levels = useOrder
-            )
-        }
-    }
+  if (!(FacetLabels == "simple" | FacetLabels == "full")) {
+    stop("'FacetLabels' must be either'simple' or 'full'")
+  }
 
-    biological <- inputList$biological
-    scaling <- inputList$scaling
-
-    plotList <- inputList
-
-    ## duplicate 0 values for all doses # not working at the moment!
-    # if (duplicateZeroPoints) {
-    #     for (ndat in 1) {
-    #         dat <- plotList[[ndat]]
-    #         subsetZeros <- copy(subset(dat, time == 0))
-    #         myDoses <- setdiff(unique(dat$dose), 0)
-    #         myZerosAdd <- NULL
-    #         for (d in seq(1, length(myDoses))) {
-    #             subsetZerosD <- copy(subsetZeros)
-    #             subsetZerosD$dose <- myDoses[d]
-    #             myZerosAdd <- rbind(myZerosAdd, subsetZerosD)
-    #         }
-    #         dat <- rbind(dat, myZerosAdd)
-    #         plotList[[ndat]] <- dat
-    #     }
-    # }
-
-    ## add columns containing the respective scaling and biological effects
-
-    # aligned
-    if (doseResponse == TRUE) {
-        xValue <- doseValueName
+  ## change plotting order from default
+  if (!is.null(useOrder)) {
+    if (length(setdiff(levels(inputList[[1]]$name), useOrder)) != 0) {
+      stop("useOrder doesn't contain all protein names.")
     } else {
-        xValue <- "time"
+      inputList$aligned$name <- factor(
+        inputList$aligned$name,
+        levels = useOrder
+      )
+      inputList$scaled$name <- factor(
+        inputList$scaled$name,
+        levels = useOrder
+      )
+      inputList$prediction$name <- factor(
+        inputList$prediction$name,
+        levels = useOrder
+      )
+      inputList$original$name <- factor(
+        inputList$original$name,
+        levels = useOrder
+      )
     }
+  }
 
+  biological <- inputList$biological
+  scaling <- inputList$scaling
 
+  plotList <- inputList
+
+  ## duplicate 0 values for all doses # not working at the moment!
+  # if (duplicateZeroPoints) {
+  #     for (ndat in 1) {
+  #         dat <- plotList[[ndat]]
+  #         subsetZeros <- copy(subset(dat, time == 0))
+  #         myDoses <- setdiff(unique(dat$dose), 0)
+  #         myZerosAdd <- NULL
+  #         for (d in seq(1, length(myDoses))) {
+  #             subsetZerosD <- copy(subsetZeros)
+  #             subsetZerosD$dose <- myDoses[d]
+  #             myZerosAdd <- rbind(myZerosAdd, subsetZerosD)
+  #         }
+  #         dat <- rbind(dat, myZerosAdd)
+  #         plotList[[ndat]] <- dat
+  #     }
+  # }
+
+  ## add columns containing the respective scaling and biological effects
+
+  # aligned
+  if (doseResponse == TRUE) {
+    xValue <- doseValueName
+  } else {
+    xValue <- "time"
+  }
+  # * FacetLabels ----
+  if(FacetLabels == "simple"){
+  # * * FacetLabels - simple ----
+  plotList$aligned$biological <- do.call(
+    paste,
+    c(
+      plotList$aligned[
+        ,
+        biological[!(biological %in% c("name", xValue))],
+        drop = FALSE
+      ],
+      list(sep="_")
+    )
+  )
+  plotList$aligned$scaling <- NA
+
+  ## scaled
+  plotList$scaled$biological <- do.call(
+    paste,
+    c(
+      inputList$scaled[
+        ,
+        biological[!(biological %in% c("name", xValue))],
+        drop = FALSE
+      ],
+      list(sep="_")
+    )
+  )
+  plotList$scaled$scaling <- do.call(
+    paste,
+    c(
+      inputList$scaled[, scaling[scaling != "name"], drop = FALSE],
+      list(sep="_")
+    )
+  )
+
+  ## prediction
+  plotList$prediction$biological <- do.call(
+    paste,
+    c(
+      inputList$prediction[
+        ,
+        biological[!(biological %in% c("name", xValue))],
+        drop = FALSE
+      ],
+      list(sep="_")
+    )
+  )
+  plotList$prediction$scaling <- do.call(
+    paste,
+    c(
+      inputList$prediction[, scaling[scaling != "name"], drop = FALSE],
+      list(sep="_")
+    )
+  )
+
+  ## original
+  plotList$original$biological <- do.call(
+    paste,
+    c(
+      inputList$original[
+        ,
+        biological[!(biological %in% c("name", xValue))],
+        drop = FALSE
+      ],
+      list(sep="_")
+    )
+  )
+  plotList$original$scaling <- do.call(
+    paste,
+    c(
+      inputList$original[, scaling[scaling != "name"], drop = FALSE],
+      list(sep="_")
+    )
+  )
+  } else if (FacetLabels == "full") {
+    # * * FacetLabels - full ----
     plotList$aligned$biological <- do.call(
-        paste0,
-        plotList$aligned[
-            ,
-            biological[!(biological %in% c("name", xValue))],
-            drop = FALSE
-        ]
+      c,
+      lapply(
+        seq(nrow(plotList$aligned)),
+        function(i) {
+          paste0(
+            lapply(
+              biological[!(biological %in% c("name", xValue))],
+              function(j) paste0(j, ": ", plotList$aligned[i,j])
+            ),
+            collapse = "\n"
+          )
+        }
+      )
     )
     plotList$aligned$scaling <- NA
 
     ## scaled
     plotList$scaled$biological <- do.call(
-        paste0,
-        inputList$scaled[
-            ,
-            biological[!(biological %in% c("name", xValue))],
-            drop = FALSE
-        ]
+      c,
+      lapply(
+        seq(nrow(plotList$scaled)),
+        function(i) {
+          paste0(
+            lapply(
+              biological[!(biological %in% c("name", xValue))],
+              function(j) paste0(j, ": ", plotList$scaled[i,j])
+            ),
+            collapse = "\n"
+          )
+        }
+      )
     )
     plotList$scaled$scaling <- do.call(
-        paste0,
-        inputList$scaled[, scaling[scaling != "name"], drop = FALSE]
+      c,
+      lapply(
+        seq(nrow(plotList$scaled)),
+        function(i) {
+          paste0(
+            lapply(
+              scaling[!(scaling %in% c("name"))],
+              function(j) paste0(j, ": ", plotList$scaled[i,j])
+            ),
+            collapse = "\n"
+          )
+        }
+      )
     )
 
     ## prediction
     plotList$prediction$biological <- do.call(
-        paste0,
-        inputList$prediction[
-            ,
-            biological[!(biological %in% c("name", xValue))],
-            drop = FALSE
-        ]
+      c,
+      lapply(
+        seq(nrow(plotList$prediction)),
+        function(i) {
+          paste0(
+            lapply(
+              biological[!(biological %in% c("name", xValue))],
+              function(j) paste0(j, ": ", plotList$prediction[i,j])
+            ),
+            collapse = "\n"
+          )
+        }
+      )
     )
     plotList$prediction$scaling <- do.call(
-        paste0,
-        inputList$prediction[, scaling[scaling != "name"], drop = FALSE]
+      c,
+      lapply(
+        seq(nrow(plotList$prediction)),
+        function(i) {
+          paste0(
+            lapply(
+              scaling[!(scaling %in% c("name"))],
+              function(j) paste0(j, ": ", plotList$prediction[i,j])
+            ),
+            collapse = "\n"
+          )
+        }
+      )
     )
 
     ## original
     plotList$original$biological <- do.call(
-        paste0,
-        inputList$original[
-            ,
-            biological[!(biological %in% c("name", xValue))],
-            drop = FALSE
-        ]
+      c,
+      lapply(
+        seq(nrow(plotList$original)),
+        function(i) {
+          paste0(
+            lapply(
+              biological[!(biological %in% c("name", xValue))],
+              function(j) paste0(j, ": ", plotList$original[i,j])
+            ),
+            collapse = "\n"
+          )
+        }
+      )
     )
     plotList$original$scaling <- do.call(
-        paste0,
-        inputList$original[, scaling[scaling != "name"], drop = FALSE]
+      c,
+      lapply(
+        seq(nrow(plotList$original)),
+        function(i) {
+          paste0(
+            lapply(
+              scaling[!(scaling %in% c("name"))],
+              function(j) paste0(j, ": ", plotList$original[i,j])
+            ),
+            collapse = "\n"
+          )
+        }
+      )
     )
 
-    plotListPoints <- plotList[[plotPoints]]
-    plotListLine <- plotList[[plotLine]]
+  }
 
-    plotListPoints <- subset(plotListPoints, ...)
-    plotListLine <- subset(plotListLine, ...)
+  plotListPoints <- plotList[[plotPoints]]
+  plotListLine <- plotList[[plotLine]]
 
-    ## build Caption
-    usedErrors <- list(
-        aligned = "Fisher Information",
-        scaled = "Propergated error model to common scale",
-        prediction = "Error model",
-        original = "None"
+  plotListPoints <- subset(plotListPoints, ...)
+  plotListLine <- subset(plotListLine, ...)
+
+  ## build Caption
+  usedErrors <- list(
+    aligned = "Fisher Information",
+    scaled = "Propergated error model to common scale",
+    prediction = "Error model",
+    original = "None"
+  )
+
+  usedData <- list(
+    aligned = "Estimated true values",
+    scaled = "Original data scaled to common scale",
+    prediction = "Predictions from model evaluation on original scale",
+    original = "Original data"
+  )
+
+  captionText <- paste0(
+    "Datapoints: ", usedData[[plotPoints]], "\n",
+    "Errorbars: ", usedErrors[[plotPoints]], "\n",
+    "Line: ", usedData[[plotLine]], "\n",
+    if (plotPoints != plotLine) {
+      paste0("Errorband: ", usedErrors[[plotLine]], "\n")
+    },
+    "\n",
+    "Date: ", Sys.Date()
+  )
+
+  ## we want to keep the x ticks!
+  if (scales == "biological") {
+    scales <- "free_x"
+  }
+
+
+
+  # * settings for dose response/time course --------------------------------
+
+  if (doseResponse == TRUE) {
+    Xlabel <-  "Dose"
+    xVariable <- doseValueName
+  } else {
+    Xlabel <-  "Time"
+    xVariable <- "time"
+  }
+
+  Ylabel <- "Signal"
+
+  if (!is.null(labelX)){
+    Xlabel <- labelX
+  }
+
+  if (!is.null(labelY)){
+    Ylabel <- labelY
+  }
+
+  if (!is.null(plotScaleX)) {
+    errWidth <- 0
+  } else {
+    errWidth <- max(as.numeric(plotListPoints[[xVariable]]))/50
+  }
+
+  plotListPoints[[xVariable]] <- as.numeric(plotListPoints[[xVariable]])
+  plotListLine[[xVariable]] <- as.numeric(plotListLine[[xVariable]])
+
+
+  # * plotting --------------------------------------------------------------
+  if (plotPoints == "aligned" & plotLine == "aligned") {
+    g <- ggplot(
+      data = plotListPoints,
+      aes_string(
+        x = xVariable,
+        y = "value",
+        group = "biological",
+        color = "biological",
+        fill = "biological"
+      )
     )
-
-    usedData <- list(
-        aligned = "Estimated true values",
-        scaled = "Original data scaled to common scale",
-        prediction = "Predictions from model evaluation on original scale",
-        original = "Original data"
-    )
-
-    captionText <- paste0(
-        "Datapoints: ", usedData[[plotPoints]], "\n",
-        "Errorbars: ", usedErrors[[plotPoints]], "\n",
-        "Line: ", usedData[[plotLine]], "\n",
-        if (plotPoints != plotLine) {
-            paste0("Errorband: ", usedErrors[[plotLine]], "\n")
-        },
-        "\n",
-        "Date: ", Sys.Date()
-    )
-
-    ## we want to keep the x ticks!
-    if (scales == "biological") {
-        scales <- "free_x"
-    }
-
-
-
-# * settings for dose response/time course --------------------------------
-
-    if (doseResponse == TRUE) {
-        Xlabel <-  "Dose"
-        xVariable <- "dose"
+    g <- g + facet_wrap(~name, scales = scales, ncol = ncol, labeller = labeller(.default = label_both))
+    if (is.null(useColors)) {
+      # useColors <- scale_color_brewer()
+      # # c(
+      # # "#000000",
+      # # "#C5000B",
+      # # "#0084D1",
+      # # "#579D1C",
+      # # "#FF950E",
+      # # "#4B1F6F",
+      # # "#CC79A7",
+      # # "#006400",
+      # # "#F0E442",
+      # # "#8B4513",
+      # # rep("gray", 100)
+      # # )
+      # g <- g + scale_color_manual("Condition", values = useColors) +
+      #     scale_fill_manual("Condition", values = useColors)
     } else {
-        Xlabel <-  "Time"
-        xVariable <- "time"
+      useColors <- c(useColors, rep("gray", 100))
+      g <- g + scale_color_manual("Biological", values = useColors) +
+        scale_fill_manual("Biological", values = useColors)
     }
-
-    Ylabel <- "Signal"
-
-    if (!is.null(labelX)){
-        Xlabel <- labelX
-    }
-
-    if (!is.null(labelY)){
-        Ylabel <- labelY
-    }
-
-    if (!is.null(plotScaleX)) {
-        errWidth <- 0
+  } else {
+    g <- ggplot(
+      data = plotListPoints,
+      aes_string(
+        x = xVariable,
+        y = "value",
+        group = "scaling",
+        color = "scaling",
+        fill = "scaling"
+      )
+    )
+    g <- g + facet_wrap(
+      ~ name * biological,
+      scales = scales,
+      ncol = ncol,
+      labeller = labeller(.default = label_both)
+    )
+    if (is.null(useColors)) {
+      # useColors <- scale_color_brewer()
+      # # c(
+      # # "#000000",
+      # # "#C5000B",
+      # # "#0084D1",
+      # # "#579D1C",
+      # # "#FF950E",
+      # # "#4B1F6F",
+      # # "#CC79A7",
+      # # "#006400",
+      # # "#F0E442",
+      # # "#8B4513",
+      # # rep("gray", 100)
+      # # )
+      # g <- g + scale_color_manual("Scaling", values = useColors) +
+      #     scale_fill_manual("Scaling", values = useColors)
     } else {
-        errWidth <- max(plotListPoints[xVariable])/50
+      useColors <- c(useColors, rep("gray", 100))
+      g <- g + scale_color_manual("Scaled", values = useColors) +
+        scale_fill_manual("Scaled", values = useColors)
+    }
+  }
+
+
+  g <- g + geom_point(data = plotListPoints, size = 2.5)
+  g <- g + geom_line(data = plotListLine, size = 1)
+
+
+  # * * plotPoints == original ----------------------------------------------
+  if (plotPoints == "original") {
+    if (plotLine != "original") {
+      if (spline == TRUE) {
+        g <- g + geom_smooth(
+          data = plotListLine,
+          se = FALSE,
+          method = "lm",
+          formula = y ~ poly(x, 3)
+        )
+      } else {
+        g <- g + geom_ribbon(
+          data = plotListLine,
+          aes(
+            ymin = lower, # value - sigma,
+            ymax = upper, # value + sigma#,
+            # fill = "grey",
+            # color = "grey"
+          ),
+          alpha = 0.3,
+          lty = 0
+        )
+      }
     }
 
 
-# * plotting --------------------------------------------------------------
-    if (plotPoints == "aligned" & plotLine == "aligned") {
-        g <- ggplot(
-            data = plotListPoints,
-            aes_string(
-                x = xVariable,
-                y = "value",
-                group = "biological",
-                color = "biological",
-                fill = "biological"
-            )
-        )
-        g <- g + facet_wrap(~name, scales = scales, ncol = ncol)
-        if (is.null(useColors)) {
-            # useColors <- scale_color_brewer()
-            # # c(
-            # # "#000000",
-            # # "#C5000B",
-            # # "#0084D1",
-            # # "#579D1C",
-            # # "#FF950E",
-            # # "#4B1F6F",
-            # # "#CC79A7",
-            # # "#006400",
-            # # "#F0E442",
-            # # "#8B4513",
-            # # rep("gray", 100)
-            # # )
-            # g <- g + scale_color_manual("Condition", values = useColors) +
-            #     scale_fill_manual("Condition", values = useColors)
-        } else {
-            useColors <- c(useColors, rep("gray", 100))
-            g <- g + scale_color_manual("Biological", values = useColors) +
-                scale_fill_manual("Biological", values = useColors)
-        }
+    # * * plotPoints == prediction -------------------------------------------
+  } else if (plotPoints == "prediction") {
+    if (plotLine != "prediction") {
+      g <- g + geom_errorbar(
+        data = plotListPoints,
+        aes(
+          ymin = lower, # value - sigma,
+          ymax = upper # value + sigma
+        ),
+        size = 0.5,
+        width = errWidth,
+        alpha = 0.5
+      )
+    }
+    if (spline == TRUE) {
+      g <- g + geom_smooth(
+        data = plotListLine,
+        se = FALSE,
+        method = "lm",
+        formula = y ~ poly(x, 3)
+      )
     } else {
-        g <- ggplot(
-            data = plotListPoints,
-            aes_string(
-                x = xVariable,
-                y = "value",
-                group = "scaling",
-                color = "scaling",
-                fill = "scaling"
-            )
+      g <- g + geom_ribbon(
+        data = plotListLine,
+        aes(
+          ymin = lower, # value - sigma,
+          ymax = upper, # value + sigma#,
+          # fill = "grey",
+          # color = "grey"
+        ),
+        alpha = 0.3,
+        lty = 0
+      )
+    }
+
+
+    # * * plotPoints == scaled ------------------------------------------------
+  } else if (plotPoints == "scaled") {
+    if (plotLine != "scaled") {
+      g <- g + geom_errorbar(
+        data = plotListPoints,
+        aes(
+          ymin = lower, # value - sigma,
+          ymax = upper # value + sigma
+        ),
+        size = 0.5,
+        width = errWidth,
+        alpha = 0.5
+      )
+    }
+    if (spline == TRUE) {
+      g <- g + geom_smooth(
+        data = plotListLine,
+        se = FALSE,
+        method = "lm",
+        formula = y ~ poly(x, 3)
+      )
+    } else {
+      g <- g + geom_ribbon(
+        data = plotListLine,
+        aes(
+          ymin = lower, # value - sigma,
+          ymax = upper, # value + sigma#,
+          # fill = "grey",
+          # color = "grey"
+        ),
+        alpha = 0.3,
+        lty = 0
+      )
+    }
+
+    #  * * plotPoints == aligned ----------------------------------------------
+  } else if (plotPoints == "aligned") {
+    if (plotLine != "aligned") {
+      g <- g + geom_errorbar(
+        data = plotListPoints,
+        aes(
+          ymin = lower, # value - sigma,
+          ymax = upper # value + sigma
+        ),
+        size = 0.5,
+        width = errWidth,
+        alpha = 0.5
+      )
+    } else {
+      if (spline == TRUE) {
+        g <- g + geom_smooth(
+          data = plotListLine,
+          se = FALSE,
+          method = "lm",
+          formula = y ~ poly(x, 3)
         )
-        g <- g + facet_wrap(
-            ~ name * biological,
-            scales = scales,
-            ncol = ncol
+      } else {
+        g <- g + geom_ribbon(
+          data = plotListLine,
+          aes(
+            ymin = lower, # value - sigma,
+            ymax = upper, # value + sigma#,
+            # fill = "grey",
+            # color = "grey"
+          ),
+          alpha = 0.3,
+          lty = 0
         )
-        if (is.null(useColors)) {
-            # useColors <- scale_color_brewer()
-            # # c(
-            # # "#000000",
-            # # "#C5000B",
-            # # "#0084D1",
-            # # "#579D1C",
-            # # "#FF950E",
-            # # "#4B1F6F",
-            # # "#CC79A7",
-            # # "#006400",
-            # # "#F0E442",
-            # # "#8B4513",
-            # # rep("gray", 100)
-            # # )
-            # g <- g + scale_color_manual("Scaling", values = useColors) +
-            #     scale_fill_manual("Scaling", values = useColors)
-        } else {
-            useColors <- c(useColors, rep("gray", 100))
-            g <- g + scale_color_manual("Scaled", values = useColors) +
-                scale_fill_manual("Scaled", values = useColors)
-        }
+      }
     }
+  }
 
 
-    g <- g + geom_point(data = plotListPoints, size = 2.5)
-    g <- g + geom_line(data = plotListLine, size = 1)
 
 
-# * * plotPoints == original ----------------------------------------------
-    if (plotPoints == "original") {
-        if (plotLine != "original") {
-            if (spline == TRUE) {
-                g <- g + geom_smooth(
-                    data = plotListLine,
-                    se = FALSE,
-                    method = "lm",
-                    formula = y ~ poly(x, 3)
-                )
-            } else {
-                g <- g + geom_ribbon(
-                    data = plotListLine,
-                    aes(
-                        ymin = lower, # value - sigma,
-                        ymax = upper, # value + sigma#,
-                        # fill = "grey",
-                        # color = "grey"
-                    ),
-                    alpha = 0.3,
-                    lty = 0
-                )
-            }
-        }
 
+  g <- g + theme_bw(base_size = 20) +
+    theme(
+      legend.position = "top",
+      legend.key = element_blank(),
+      strip.background = element_rect(color = NA, fill = NA),
+      axis.line.x = element_line(size = 0.3, colour = "black"),
+      axis.line.y = element_line(size = 0.3, colour = "black"),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      panel.background = element_blank(),
+      plot.margin = unit(c(0, 0.5, 0.5, 0.5), "cm")
+    )
+  g <- g + xlab(paste0("\n",Xlabel)) + ylab(paste0(Ylabel,"\n"))
 
-# * * plotPoints == prediction -------------------------------------------
-    } else if (plotPoints == "prediction") {
-        if (plotLine != "prediction") {
-            g <- g + geom_errorbar(
-                data = plotListPoints,
-                aes(
-                    ymin = lower, # value - sigma,
-                    ymax = upper # value + sigma
-                ),
-                size = 0.5,
-                width = errWidth,
-                alpha = 0.5
-            )
-        }
-        if (spline == TRUE) {
-            g <- g + geom_smooth(
-                data = plotListLine,
-                se = FALSE,
-                method = "lm",
-                formula = y ~ poly(x, 3)
-            )
-        } else {
-            g <- g + geom_ribbon(
-                data = plotListLine,
-                aes(
-                    ymin = lower, # value - sigma,
-                    ymax = upper, # value + sigma#,
-                    # fill = "grey",
-                    # color = "grey"
-                ),
-                alpha = 0.3,
-                lty = 0
-            )
-        }
-
-
-# * * plotPoints == scaled ------------------------------------------------
-    } else if (plotPoints == "scaled") {
-        if (plotLine != "scaled") {
-            g <- g + geom_errorbar(
-                data = plotListPoints,
-                aes(
-                    ymin = lower, # value - sigma,
-                    ymax = upper # value + sigma
-                ),
-                size = 0.5,
-                width = errWidth,
-                alpha = 0.5
-            )
-        }
-        if (spline == TRUE) {
-            g <- g + geom_smooth(
-                data = plotListLine,
-                se = FALSE,
-                method = "lm",
-                formula = y ~ poly(x, 3)
-            )
-        } else {
-            g <- g + geom_ribbon(
-                data = plotListLine,
-                aes(
-                    ymin = lower, # value - sigma,
-                    ymax = upper, # value + sigma#,
-                    # fill = "grey",
-                    # color = "grey"
-                ),
-                alpha = 0.3,
-                lty = 0
-            )
-        }
-
-#  * * plotPoints == aligned ----------------------------------------------
-    } else if (plotPoints == "aligned") {
-        if (plotLine != "aligned") {
-            g <- g + geom_errorbar(
-                data = plotListPoints,
-                aes(
-                    ymin = lower, # value - sigma,
-                    ymax = upper # value + sigma
-                ),
-                size = 0.5,
-                width = errWidth,
-                alpha = 0.5
-            )
-        } else {
-            if (spline == TRUE) {
-                g <- g + geom_smooth(
-                    data = plotListLine,
-                    se = FALSE,
-                    method = "lm",
-                    formula = y ~ poly(x, 3)
-                )
-            } else {
-                g <- g + geom_ribbon(
-                    data = plotListLine,
-                    aes(
-                        ymin = lower, # value - sigma,
-                        ymax = upper, # value + sigma#,
-                        # fill = "grey",
-                        # color = "grey"
-                    ),
-                    alpha = 0.3,
-                    lty = 0
-                )
-            }
-        }
+  if (alignZeros) {
+    if (plotPoints != "original") {
+      ## scale y-axes (let them start at same minimum determined by
+      ## smallest value-sigma and end at individual ymax)
+      plotListPoints <- as.data.table(plotListPoints)
+      blankData <- plotListPoints[
+        ,
+        list(ymax = max(upper), ymin = min(lower)),
+        by = c("name", "biological", "scaling")
+      ]
+      blankData[, ":="(ymin = min(ymin))] # same minimum for all proteins
+      blankData[
+        ,
+        ":="(ymax = getMaxY(ymax)),
+        by = c("name", "biological", "scaling")
+      ] # protein specific maximum
+      blankData <- melt(
+        blankData,
+        id.vars = c("name", "biological", "scaling"),
+        measure.vars = c("ymax", "ymin"),
+        value.name = "value"
+      )
+      blankData[, ":="(xVariable = 0, variable = NULL)]
+      setnames(blankData, "xVariable", xVariable)
+      g <- g + geom_blank(
+        data = as.data.frame(blankData),
+        aes_string(x = xVariable, y = "value")
+      )
     }
+  }
 
 
+  if (plotCaption) {
+    g <- g + labs(caption = captionText)
+  }
 
-
-
-    g <- g + theme_bw(base_size = 20) +
-        theme(
-            legend.position = "top",
-            legend.key = element_blank(),
-            strip.background = element_rect(color = NA, fill = NA),
-            axis.line.x = element_line(size = 0.3, colour = "black"),
-            axis.line.y = element_line(size = 0.3, colour = "black"),
-            panel.grid.major.x = element_blank(),
-            panel.grid.major.y = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.border = element_blank(),
-            panel.background = element_blank(),
-            plot.margin = unit(c(0, 0.5, 0.5, 0.5), "cm")
-        )
-    g <- g + xlab(paste0("\n",Xlabel)) + ylab(paste0(Ylabel,"\n"))
-
-    if (alignZeros) {
-        if (plotPoints != "original") {
-            ## scale y-axes (let them start at same minimum determined by
-            ## smallest value-sigma and end at individual ymax)
-            plotListPoints <- as.data.table(plotListPoints)
-            blankData <- plotListPoints[
-                ,
-                list(ymax = max(upper), ymin = min(lower)),
-                by = c("name", "biological", "scaling")
-            ]
-            blankData[, ":="(ymin = min(ymin))] # same minimum for all proteins
-            blankData[
-                ,
-                ":="(ymax = getMaxY(ymax)),
-                by = c("name", "biological", "scaling")
-            ] # protein specific maximum
-            blankData <- melt(
-                blankData,
-                id.vars = c("name", "biological", "scaling"),
-                measure.vars = c("ymax", "ymin"),
-                value.name = "value"
-            )
-            blankData[, ":="(xVariable = 0, variable = NULL)]
-            setnames(blankData, "xVariable", xVariable)
-            g <- g + geom_blank(
-                data = as.data.frame(blankData),
-                aes_string(x = xVariable, y = "value")
-            )
-        }
+  if (is.null(plotScaleY)) {
+    if (inputList$outputScale != "linear") {
+      g <- g + coord_trans(y = inputList$outputScale)
     }
+  } else if (plotScaleY %in% c("log", "log2", "log10")) {
+    g <- g + scale_y_continuous(trans = plotScaleY)
+  }
 
-
-    if (plotCaption) {
-        g <- g + labs(caption = captionText)
+  if (is.null(plotScaleX)) {
+    if (inputList$outputScale != "linear") {
+      g <- g + coord_trans(x = inputList$outputScale)
     }
-
-    if (is.null(plotScaleY)) {
-        if (inputList$outputScale != "linear") {
-            g <- g + coord_trans(y = inputList$outputScale)
-        }
-    } else if (plotScaleY %in% c("log", "log2", "log10")) {
-        g <- g + scale_y_continuous(trans = plotScaleY)
-    }
-
-    if (is.null(plotScaleX)) {
-        if (inputList$outputScale != "linear") {
-            g <- g + coord_trans(x = inputList$outputScale)
-        }
-    } else if (plotScaleX == "pseudoLog10") {
-      g <- g + scale_x_continuous(trans=scales::pseudo_log_trans(base = 10))
-    } else if (plotScaleX %in% c("log", "log2", "log10")) {
-        g <- g + scale_x_continuous(trans = plotScaleX)
-    }
+  } else if (plotScaleX == "pseudoLog10") {
+    g <- g + scale_x_continuous(trans=scales::pseudo_log_trans(base = 10))
+  } else if (plotScaleX %in% c("log", "log2", "log10")) {
+    g <- g + scale_x_continuous(trans = plotScaleX)
+  }
 
 
-    return(g)
+  return(g)
 }
 
 
@@ -722,41 +873,41 @@ plotIt <- function(
 #' @export
 #'
 llrTest <- function(H0, H1, check = TRUE) {
-    biological0 <- union(
-        H0$biological[!(H0$biological %in% c("name", "time"))],
-        "1"
-    )
-    biological1 <- union(
-        H1$biological[!(H1$biological %in% c("name", "time"))],
-        "1"
-    )
+  biological0 <- union(
+    H0$biological[!(H0$biological %in% c("name", "time"))],
+    "1"
+  )
+  biological1 <- union(
+    H1$biological[!(H1$biological %in% c("name", "time"))],
+    "1"
+  )
 
-    scaling0 <- union(H0$scaling[H0$scaling != "name"], "1")
-    scaling1 <- union(H1$scaling[H1$scaling != "name"], "1")
+  scaling0 <- union(H0$scaling[H0$scaling != "name"], "1")
+  scaling1 <- union(H1$scaling[H1$scaling != "name"], "1")
 
-    error0 <- union(H0$error[H0$error != "name"], "1")
-    error1 <- union(H1$scaling[H1$scaling != "name"], "1")
+  error0 <- union(H0$error[H0$error != "name"], "1")
+  error1 <- union(H1$scaling[H1$scaling != "name"], "1")
 
-    if (check) {
-        if (
-            !all(biological0 %in% biological1) |
-                !all(scaling0 %in% scaling1) | !all(error0 %in% error1)
-        ) {
-            stop("H0 is not a special case of H1.")
-        }
+  if (check) {
+    if (
+      !all(biological0 %in% biological1) |
+      !all(scaling0 %in% scaling1) | !all(error0 %in% error1)
+    ) {
+      stop("H0 is not a special case of H1.")
     }
+  }
 
 
-    value0 <- attr(H0$parameter, "value")
-    value1 <- attr(H1$parameter, "value")
-    df0 <- attr(H0$parameter, "df")
-    df1 <- attr(H1$parameter, "df")
+  value0 <- attr(H0$parameter, "value")
+  value1 <- attr(H1$parameter, "value")
+  df0 <- attr(H0$parameter, "df")
+  df1 <- attr(H1$parameter, "df")
 
-    list(
-        llr = value0 - value1,
-        statistic = paste0(
-            "chisquare with ", df0 - df1, " degrees of freedom."
-        ),
-        p.value = pchisq(value0 - value1, df = df0 - df1, lower.tail = FALSE)
-    )
+  list(
+    llr = value0 - value1,
+    statistic = paste0(
+      "chisquare with ", df0 - df1, " degrees of freedom."
+    ),
+    p.value = pchisq(value0 - value1, df = df0 - df1, lower.tail = FALSE)
+  )
 }
