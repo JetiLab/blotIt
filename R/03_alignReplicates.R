@@ -57,6 +57,7 @@
 #' @param normalizeInput logical, if TRUE the input will be normalized before
 #' scaling, helpful if convergence fails because the data varies for to many
 #' orders of magnitude.
+#' @param keepOriginalMean logical, if TRUE the output will have the same mean as the input, use only with normalizeINput=FALSE
 #' @param iterlim numerical argument passed to \link{trust}.
 #'
 #' @param ciProfiles Logical, if \code{TRUE}, the confidence intervals (CI) are
@@ -138,6 +139,7 @@ alignReplicates <- function(data,
                      verbose = FALSE,
                      namesFactored = TRUE,
                      normalizeInput = TRUE,
+                     keepOriginalMean = FALSE,
                      outputScale = "linear",
                      iterlim = 100
                      ) {
@@ -467,6 +469,15 @@ alignReplicates <- function(data,
         "original",
         "originalWithParameters"
     )
+
+    if(keepOriginalMean){
+        if(normalizeInput) warning("To keep the original mean, use normalizeInput = FALSE")
+        for(target in unique(outCombined$original$name)){
+            meanOriginal <- mean(subset(outCombined$original, name==target)$value)
+            meanScaled <- mean(subset(outCombined$scaled, name==target)$value)
+            outCombined$scaled$value[which(outCombined$scaled$name==target)] <- outCombined$scaled$value[which(outCombined$scaled$name==target)]*meanOriginal/meanScaled
+        }
+    }
 
     returnList <- list(
         aligned = outCombined$aligned,
