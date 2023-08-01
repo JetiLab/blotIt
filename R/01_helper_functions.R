@@ -687,7 +687,26 @@ scaleTarget <- function(currentData,
 
     # * call of trust() function ----------------------------------------------
 
-
+    MultiStart <- F
+    if(MultiStart){
+      myfitResult <- do.call(rbind, lapply(1:50, function(i){
+        initParsSample <- initPars + rnorm(n = length(initPars), mean = 0, sd = 3)
+        fitResult <- trust::trust(
+          objfun = objFunction,
+          parinit = initPars,
+          rinit = 1,
+          rmax = 10,
+          iterlim = iterlim,
+          blather = verbose,
+          passParList = passParList,
+          passParList2 = passParList2
+        )
+        pars <- c(fitResult$value,fitResult$argument)
+        names(pars) <- c("value", names(initPars))
+        pars
+      }))
+      print(head(myfitResult, 3))
+    }
     fitResult <- trust::trust(
         objfun = objFunction,
         parinit = initPars,
