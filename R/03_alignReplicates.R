@@ -475,7 +475,11 @@ alignReplicates <- function(data,
         for(target in unique(outCombined$original$name)){
             meanOriginal <- mean(subset(outCombined$original, name==target)$value)
             meanScaled <- mean(subset(outCombined$scaled, name==target)$value)
+            meanAligned <- mean(subset(outCombined$aligned, name==target)$value)
+            meanPrediction <- mean(subset(outCombined$prediction, name==target)$value)
             outCombined$scaled$value[which(outCombined$scaled$name==target)] <- outCombined$scaled$value[which(outCombined$scaled$name==target)]*meanOriginal/meanScaled
+            outCombined$aligned$value[which(outCombined$aligned$name==target)] <- outCombined$aligned$value[which(outCombined$aligned$name==target)]*meanOriginal/meanAligned
+            outCombined$prediction$value[which(outCombined$prediction$name==target)] <- outCombined$prediction$value[which(outCombined$prediction$name==target)]*meanOriginal/meanPrediction
         }
     }
 
