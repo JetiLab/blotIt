@@ -57,7 +57,7 @@
 #' @param normalizeInput logical, if TRUE the input will be normalized before
 #' scaling, helpful if convergence fails because the data varies for to many
 #' orders of magnitude.
-#' @param keepOriginalMean logical, if TRUE the output will have the same mean as the input, use only with normalizeINput=FALSE
+#' @param keepOriginalScale character, if "none" the output will have another mean as the input, use "log" to keep same offset of log-data and "lin" to keep same mean for linear data
 #' @param iterlim numerical argument passed to \link{trust}.
 #'
 #' @param ciProfiles Logical, if \code{TRUE}, the confidence intervals (CI) are
