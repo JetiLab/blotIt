@@ -57,6 +57,7 @@
 #' @param normalizeInput logical, if TRUE the input will be normalized before
 #' scaling, helpful if convergence fails because the data varies for to many
 #' orders of magnitude.
+#' @param keepOriginalScale character, if "none" the output will have another mean as the input, use "log" to keep same offset of log-data and "lin" to keep same mean for linear data
 #' @param iterlim numerical argument passed to \link{trust}.
 #'
 #' @param ciProfiles Logical, if \code{TRUE}, the confidence intervals (CI) are
@@ -138,6 +139,7 @@ alignReplicates <- function(data,
                      verbose = FALSE,
                      namesFactored = TRUE,
                      normalizeInput = TRUE,
+                     keepOriginalScale = "none",
                      outputScale = "linear",
                      iterlim = 100
                      ) {
@@ -467,6 +469,56 @@ alignReplicates <- function(data,
         "original",
         "originalWithParameters"
     )
+
+    if(keepOriginalScale!="none"){
+        if(normalizeInput) warning("To keep the original scale, use normalizeInput = FALSE")
+        if(keepOriginalScale=="lin"){
+            for(target in unique(outCombined$original$name)){
+                meanOriginal <- mean(subset(outCombined$original, name==target)$value)
+                meanScaled <- mean(subset(outCombined$scaled, name==target)$value)
+                meanAligned <- mean(subset(outCombined$aligned, name==target)$value)
+                meanPrediction <- mean(subset(outCombined$prediction, name==target)$value)
+
+                outCombined$scaled$value[which(outCombined$scaled$name==target)] <- outCombined$scaled$value[which(outCombined$scaled$name==target)]*meanOriginal/meanScaled
+                outCombined$scaled$sigma[which(outCombined$scaled$name==target)] <- outCombined$scaled$sigma[which(outCombined$scaled$name==target)]*meanOriginal/meanScaled
+                outCombined$scaled$lower[which(outCombined$scaled$name==target)] <- outCombined$scaled$lower[which(outCombined$scaled$name==target)]*meanOriginal/meanScaled
+                outCombined$scaled$upper[which(outCombined$scaled$name==target)] <- outCombined$scaled$upper[which(outCombined$scaled$name==target)]*meanOriginal/meanScaled
+
+                outCombined$aligned$value[which(outCombined$aligned$name==target)] <- outCombined$aligned$value[which(outCombined$aligned$name==target)]*meanOriginal/meanAligned
+                outCombined$aligned$sigma[which(outCombined$aligned$name==target)] <- outCombined$aligned$sigma[which(outCombined$aligned$name==target)]*meanOriginal/meanAligned
+                outCombined$aligned$lower[which(outCombined$aligned$name==target)] <- outCombined$aligned$lower[which(outCombined$aligned$name==target)]*meanOriginal/meanAligned
+                outCombined$aligned$upper[which(outCombined$aligned$name==target)] <- outCombined$aligned$upper[which(outCombined$aligned$name==target)]*meanOriginal/meanAligned
+
+                outCombined$prediction$value[which(outCombined$prediction$name==target)] <- outCombined$prediction$value[which(outCombined$prediction$name==target)]*meanOriginal/meanPrediction
+                outCombined$prediction$sigma[which(outCombined$prediction$name==target)] <- outCombined$prediction$sigma[which(outCombined$prediction$name==target)]*meanOriginal/meanPrediction
+                outCombined$prediction$lower[which(outCombined$prediction$name==target)] <- outCombined$prediction$lower[which(outCombined$prediction$name==target)]*meanOriginal/meanPrediction
+                outCombined$prediction$upper[which(outCombined$prediction$name==target)] <- outCombined$prediction$upper[which(outCombined$prediction$name==target)]*meanOriginal/meanPrediction
+            }
+        }
+        if(keepOriginalScale=="log"){
+                for(target in unique(outCombined$original$name)){
+                    meanOriginal <- mean(subset(outCombined$original, name==target)$value)
+                    meanScaled <- mean(subset(outCombined$scaled, name==target)$value)
+                    meanAligned <- mean(subset(outCombined$aligned, name==target)$value)
+                    meanPrediction <- mean(subset(outCombined$prediction, name==target)$value)
+
+                    outCombined$scaled$value[which(outCombined$scaled$name==target)] <- outCombined$scaled$value[which(outCombined$scaled$name==target)]+meanOriginal-meanScaled
+                    #outCombined$scaled$sigma[which(outCombined$scaled$name==target)] <- outCombined$scaled$sigma[which(outCombined$scaled$name==target)]+meanOriginal-meanScaled
+                    outCombined$scaled$lower[which(outCombined$scaled$name==target)] <- outCombined$scaled$lower[which(outCombined$scaled$name==target)]+meanOriginal-meanScaled
+                    outCombined$scaled$upper[which(outCombined$scaled$name==target)] <- outCombined$scaled$upper[which(outCombined$scaled$name==target)]+meanOriginal-meanScaled
+
+                    outCombined$aligned$value[which(outCombined$aligned$name==target)] <- outCombined$aligned$value[which(outCombined$aligned$name==target)]+meanOriginal-meanAligned
+                    #outCombined$aligned$sigma[which(outCombined$aligned$name==target)] <- outCombined$aligned$sigma[which(outCombined$aligned$name==target)]+meanOriginal-meanAligned
+                    outCombined$aligned$lower[which(outCombined$aligned$name==target)] <- outCombined$aligned$lower[which(outCombined$aligned$name==target)]+meanOriginal-meanAligned
+                    outCombined$aligned$upper[which(outCombined$aligned$name==target)] <- outCombined$aligned$upper[which(outCombined$aligned$name==target)]+meanOriginal-meanAligned
+
+                    outCombined$prediction$value[which(outCombined$prediction$name==target)] <- outCombined$prediction$value[which(outCombined$prediction$name==target)]+meanOriginal-meanPrediction
+                    #outCombined$prediction$sigma[which(outCombined$prediction$name==target)] <- outCombined$prediction$sigma[which(outCombined$prediction$name==target)]+meanOriginal-meanPrediction
+                    outCombined$prediction$lower[which(outCombined$prediction$name==target)] <- outCombined$prediction$lower[which(outCombined$prediction$name==target)]+meanOriginal-meanPrediction
+                    outCombined$prediction$upper[which(outCombined$prediction$name==target)] <- outCombined$prediction$upper[which(outCombined$prediction$name==target)]+meanOriginal-meanPrediction
+                }
+        }
+    }
 
     returnList <- list(
         aligned = outCombined$aligned,
