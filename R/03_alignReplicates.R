@@ -1,4 +1,4 @@
-
+#
 #' Align time-course data based on an Mixed-Effects alignment model
 #'
 #' The function deals primarily with time-course data of different
